@@ -1,6 +1,8 @@
 import { createServer } from '@graphql-yoga/node';
 import { IResolvers } from '@graphql-tools/utils';
 
+import mysql from "../../node_modules/serverless-mysql/index"
+
 const typeDefs = /* GraphQL */ `
   enum TaskStatus {
     active
@@ -35,9 +37,16 @@ const typeDefs = /* GraphQL */ `
   }
 `
 
+// interface ApolloContext {
+//   db: mysql.ServerlessMysql;
+// }
+
 const resolvers: IResolvers = {
   Query: {
-    tasks(parent, args, context) {
+    async tasks(parent, args, context) {
+      let results = await db.query('select "HELLO WOLRD" as hello_world;');
+      await db.end();
+      console.log({results});
       return []
     },
     task(parent, args, context) {
@@ -57,10 +66,20 @@ const resolvers: IResolvers = {
   }
 }
 
+const db = mysql({
+  config: {
+    host: process.env.MYSQL_HOST,
+    database: process.env.MYSQL_DATABASE,
+    password: process.env.MYSQL_PASSWORD,
+    user: process.env.MYSQL_USER
+  }
+})
+
 const server = createServer({
   schema: {
     typeDefs,
     resolvers,
+    context: {db}
   },
   endpoint: '/api/graphql',
   // graphiql: false // uncomment to disable GraphiQL
