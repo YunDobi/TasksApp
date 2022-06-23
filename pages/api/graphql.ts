@@ -70,7 +70,7 @@ const resolvers: IResolvers = {
       //   query + 'WHERE task_status = ?';
       //   queryParams.push(status)
       // }
-      let tasks = await db.query<TaskDbQueryResult>('select id, title, task_status from Tasks;');
+      let tasks = await db.query<TaskDbQueryResult>('SELECT id, title, task_status from Tasks;');
       await db.end();
       return tasks.map(({id, title, task_status}) => ({id, title, status: task_status}))
     },
