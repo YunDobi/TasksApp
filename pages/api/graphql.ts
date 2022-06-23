@@ -2,6 +2,7 @@ import { createServer } from '@graphql-yoga/node';
 import { IResolvers } from '@graphql-tools/utils';
 
 import mysql from "../../node_modules/serverless-mysql/index"
+import { type } from 'os';
 
 const typeDefs = /* GraphQL */ `
   enum TaskStatus {
@@ -37,17 +38,41 @@ const typeDefs = /* GraphQL */ `
   }
 `
 
-// interface ApolloContext {
-//   db: mysql.ServerlessMysql;
-// }
+//
+enum TaskStatus {
+  active = "active",
+  completed = "complted"
+}
+
+interface TaskDbRow {
+  id: number
+  title: string
+  task_status: TaskStatus
+}
+
+type TaskDbQueryResult = TaskDbRow[];
+
+//
+
+interface Task {
+  id: number
+  title: string
+  status: TaskStatus
+}
 
 const resolvers: IResolvers = {
   Query: {
-    async tasks(parent, args, context) {
-      let results = await db.query('select "HELLO WOLRD" as hello_world;');
+    async tasks(parent, args: {status?: TaskStatus}, context): Promise<Task[]> {
+      const {status} = args;
+      // let query = 'select id, title, task_status from Tasks';
+      // const queryParams: string[] = [];
+      // if (status) {
+      //   query + 'WHERE task_status = ?';
+      //   queryParams.push(status)
+      // }
+      let tasks = await db.query<TaskDbQueryResult>('select id, title, task_status from Tasks;');
       await db.end();
-      console.log({results});
-      return []
+      return tasks.map(({id, title, task_status}) => ({id, title, status: task_status}))
     },
     task(parent, args, context) {
       return null
