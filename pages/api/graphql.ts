@@ -2,6 +2,7 @@ import { createServer } from '@graphql-yoga/node';
 import { IResolvers } from '@graphql-tools/utils';
 
 import mysql from "../../node_modules/serverless-mysql/index"
+import { OkPacket} from "mysql";
 import { type } from 'os';
 
 const typeDefs = /* GraphQL */ `
@@ -52,6 +53,10 @@ interface TaskDbRow {
 
 type TaskDbQueryResult = TaskDbRow[];
 
+interface ApolloContext {
+  db: mysql.ServerlessMysql;
+}
+
 //
 
 interface Task {
@@ -60,17 +65,21 @@ interface Task {
   status: TaskStatus
 }
 
-const resolvers: IResolvers = {
+const resolvers: IResolvers<any,ApolloContext> = {
   Query: {
+    //args for the options for the query **context = does not need the ApolloContext. just db.query
     async tasks(parent, args: {status?: TaskStatus}, context): Promise<Task[]> {
       const {status} = args;
-      // let query = 'select id, title, task_status from Tasks';
-      // const queryParams: string[] = [];
-      // if (status) {
-      //   query + 'WHERE task_status = ?';
-      //   queryParams.push(status)
-      // }
-      let tasks = await db.query<TaskDbQueryResult>('SELECT id, title, task_status from Tasks;');
+
+      let query = 'select id, title, task_status from Tasks';
+      const queryParams: string[] = [];
+      if (status) {
+        query += ' WHERE task_status = ?';
+        queryParams.push(status)
+      }
+      console.log(query, queryParams)
+
+      let tasks = await db.query<TaskDbQueryResult>(query, queryParams);
       await db.end();
       return tasks.map(({id, title, task_status}) => ({id, title, status: task_status}))
     },
@@ -79,8 +88,12 @@ const resolvers: IResolvers = {
     },
   },
   Mutation: {
-    createTask(parent, args, context) {
-      return null
+    // **context does need Apollo interface just db.query
+    async createTask(parent, args: {input: {title: string} }, context): Promise<Task> {
+      //args createTask is method for the inserting the db
+      const result = await db.query<OkPacket>('INSERT INTO Tasks (title, task_status) Values(?,?)', [args.input.title, TaskStatus.active])
+
+      return {id: result.insertId, title: args.input.title, status: TaskStatus.active}
     },
     updateTask(parent, args, context) {
       return null;
