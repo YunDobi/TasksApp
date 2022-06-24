@@ -51,7 +51,13 @@ interface TaskDbRow {
   task_status: TaskStatus
 }
 
+type TasksDbQueryResult = TaskDbRow[];
 type TaskDbQueryResult = TaskDbRow[];
+
+const getTaskById = async (id: number, db: mysql.ServerlessMysql) => {
+  const tasks = await db.query<TaskDbQueryResult>('SELECT id, title, task_status FROM Tasks WHERE id=?', [id]);
+  return tasks.length ? {id: tasks[0].id, title: tasks[0].title, status: tasks[0].task_status} : null;
+}
 
 interface ApolloContext {
   db: mysql.ServerlessMysql;
@@ -77,14 +83,15 @@ const resolvers: IResolvers<any,ApolloContext> = {
         query += ' WHERE task_status = ?';
         queryParams.push(status)
       }
-      console.log(query, queryParams)
-
-      let tasks = await db.query<TaskDbQueryResult>(query, queryParams);
+      // console.log(query, queryParams)
+      let tasks = await db.query<TasksDbQueryResult>(query, queryParams);
       await db.end();
       return tasks.map(({id, title, task_status}) => ({id, title, status: task_status}))
     },
-    task(parent, args, context) {
-      return null
+
+    async task(parent, args, context) {
+      // const tasks = await db.query<TaskDbQueryResult>('SELECT id, title, task_status FROM Tasks WHERE id=?', [args.id]);
+      return await getTaskById(args.id, db);
     },
   },
   Mutation: {
@@ -95,11 +102,34 @@ const resolvers: IResolvers<any,ApolloContext> = {
 
       return {id: result.insertId, title: args.input.title, status: TaskStatus.active}
     },
-    updateTask(parent, args, context) {
-      return null;
+    
+    async updateTask(parent, args, context) {
+      //divide the optional parameters in the query. Like the title, and task_status
+      const colums: string[] = [];
+      const sqlParams: any[] = [];
+
+      if (args.input.title) {
+        colums.push(' title = ?');
+        sqlParams.push(args.input.title)
+      }
+      if (args.input.status) {
+        colums.push(' task_status = ?');
+        sqlParams.push(args.input.status);
+      }
+      sqlParams.push(args.input.id);
+
+      await db.query(`UPDATE Tasks SET ${colums.join(",")} Where id = ?`, sqlParams)
+      const updateTaks = await getTaskById(args.input.id, db);
+      return updateTaks;
     },
-    deleteTask(parent, args, context) {
-      return null;
+
+    async deleteTask(parent, args, context) {
+      const task = await getTaskById(args.id, db);
+      if (!task) {
+        throw new Error("could not find the task");
+      }
+      await db.query(`DELETE FROM Tasks WHERE id = ?`, args.id)
+      return task;
     },
   }
 }
