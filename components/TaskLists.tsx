@@ -6,6 +6,7 @@ interface props {
 }
 
 const TaskList: React.FC<props> = ({tasks}) => {
+  console.log("taskList", tasks.length)
   return (
     <ul className="task-list">
       {tasks.map((task) => {

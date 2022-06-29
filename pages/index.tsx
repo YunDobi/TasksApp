@@ -3,12 +3,14 @@ import Head from 'next/head';
 import { initializeApollo } from '../lib/client';
 import { TasksDocument, TasksQuery, useTasksQuery } from '../generated/graphql-fontend';
 import TaskList from '../components/TaskLists';
+import CreateTaskForm from '../components/CreateTaskForm';
 
 
 export default function Home() {
   const result = useTasksQuery();
-console.log(result.data)
   const tasks = result.data?.tasks;
+
+  // console.log("tasks console",tasks)
 
   return (
     <div>
@@ -16,6 +18,7 @@ console.log(result.data)
         <title>Tasks</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <CreateTaskForm onSuccess={result.refetch} />
       {result.loading ? (
         <p>Loading Tasks...</p>
       ) : result.error ? (
