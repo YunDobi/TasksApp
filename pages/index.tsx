@@ -2,6 +2,7 @@ import Head from 'next/head';
 
 import { initializeApollo } from '../lib/client';
 import { TasksDocument, TasksQuery, useTasksQuery } from '../generated/graphql-fontend';
+import TaskList from '../components/TaskLists';
 
 
 export default function Home() {
@@ -15,15 +16,13 @@ console.log(result.data)
         <title>Tasks</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {tasks &&
-        tasks.length > 0 &&
-        tasks.map((task) => {
-          return (
-            <div key={task.id}>
-              {task.title} ({task.status})
-            </div>
-          );
-        })}
+      {result.loading ? (
+        <p>Loading Tasks...</p>
+      ) : result.error ? (
+        <p>An error ocurred</p>
+      ) : tasks && tasks.length > 0 ? (
+      <TaskList  tasks={tasks} />
+      ) : <p className='no-tasks-message'>You're got no tasks.</p>}
     </div>
   );
 }
