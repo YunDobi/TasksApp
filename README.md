@@ -1,5 +1,5 @@
 ## ScreenShot
-![images](https://github.com/YunDobi/TasksApp/blob/main/public/mainSC.png)
+![images](https://github.com/YunDobi/TasksApp/blob/main/public/main-sc.png)
 
 ## Getting Started
 
