@@ -1,21 +1,40 @@
 import React, { useEffect } from "react";
 import { Task, useDeleteTaskMutation } from "../generated/graphql-fontend";
 import Link from "next/link";
+import { Reference } from "@apollo/client";
+
 
 interface Props {
   task: Task;
 }
 
 const TaskListItem: React.FC<Props> = ({ task }) => {
-  const [delteTask, { loading, error }] = useDeleteTaskMutation({
+  const [deleteTask, { loading, error }] = useDeleteTaskMutation({
     variables: { id: task.id },
-    errorPolicy: 'none'
+    errorPolicy: 'all',
+    update: (caches, result) => {
+      const deletedTask = result.data?.deleteTask;
+
+
+      if (deletedTask) {
+        caches.modify({
+          fields: {
+              tasks(taskRefs: Reference[], {readField}) {
+                return taskRefs.filter(taskRefs => {
+                  return readField('id', taskRefs) !== deletedTask.id;
+                })
+              }
+          }
+        })
+      }
+    } 
   });
   const handleDeleteClick = async () => {
     try {
-      await delteTask();
+      await deleteTask();
     } catch (e) {
       //log error
+      console.log(e)
     }
   };
 
