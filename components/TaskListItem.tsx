@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
-import { Task, useDeleteTaskMutation } from "../generated/graphql-fontend";
-import Link from "next/link";
-import { Reference } from "@apollo/client";
-
+import React, { useEffect } from 'react';
+import { Task, useDeleteTaskMutation } from '../generated/graphql-fontend';
+import Link from 'next/link';
+import { Reference } from '@apollo/client';
 
 interface Props {
   task: Task;
@@ -12,35 +11,34 @@ const TaskListItem: React.FC<Props> = ({ task }) => {
   const [deleteTask, { loading, error }] = useDeleteTaskMutation({
     variables: { id: task.id },
     errorPolicy: 'all',
-    update: (caches, result) => {
+    update: (cache, result) => {
       const deletedTask = result.data?.deleteTask;
 
-
       if (deletedTask) {
-        caches.modify({
+        cache.modify({
           fields: {
-              tasks(taskRefs: Reference[], {readField}) {
-                return taskRefs.filter(taskRefs => {
-                  return readField('id', taskRefs) !== deletedTask.id;
-                })
-              }
-          }
-        })
+            tasks(taskRefs: Reference[], { readField }) {
+              return taskRefs.filter((taskRef) => {
+                return readField('id', taskRef) !== deletedTask.id;
+              });
+            },
+          },
+        });
       }
-    } 
+    },
   });
   const handleDeleteClick = async () => {
     try {
       await deleteTask();
     } catch (e) {
-      //log error
-      console.log(e)
+      // Log the error
+      console.log(e);
     }
   };
 
   useEffect(() => {
     if (error) {
-      alert("An error is ocurred. Please try again later.");
+      alert('An error occurred, please try again.');
     }
   }, [error]);
 
@@ -51,8 +49,8 @@ const TaskListItem: React.FC<Props> = ({ task }) => {
       </Link>
       <button
         className="task-list-item-delete"
-        onClick={handleDeleteClick}
         disabled={loading}
+        onClick={handleDeleteClick}
       >
         &times;
       </button>
