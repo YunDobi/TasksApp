@@ -1,6 +1,8 @@
 ## ScreenShot
-![images](https://github.com/YunDobi/TasksApp/blob/main/public/main%20SC.png)
+![images](https://github.com/YunDobi/TasksApp/blob/main/public/main%20screen.png)
 ![images](https://github.com/YunDobi/TasksApp/blob/main/public/GraphQL%20SC.png)
+![images](https://github.com/YunDobi/TasksApp/blob/main/public/taskComplete%20SC.png)
+![images](https://github.com/YunDobi/TasksApp/blob/main/public/taskDetail%20SC.png)
 
 ## Getting Started
 
