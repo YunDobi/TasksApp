@@ -33,7 +33,7 @@ const UpdateTask = () => {
 };
 export default UpdateTask;
 
-export let GetServerSideProp: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const id =
     typeof context.params?.id === "string"
       ? parseInt(context.params.id, 10)
